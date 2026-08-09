@@ -1,5 +1,8 @@
 const WATER_OPTIONS=[1,1.5,2,2.5,3];
-const REFERENCE_ONLY_NAMES=new Set(['5-Amino-1MQ','Cagrilintide + Semaglutide','Dihexa','Oxytocin Acetate','Retatrutide + Cagrilintide','Retatrutide 20mg + Trizepatide 40mg (10ml)','Selank+Semax','SLU-PP-332','Tesamorelin + Ipamorelin']);
+const REFERENCE_ONLY_NAMES=new Set([
+  '5-Amino-1MQ','Adamax','Adamax-982','ADAMAX-984','Adipotide','Cagrilintide + Semaglutide','Dihexa','FOXO4-DRI','Humanin','Oxytocin Acetate','PE-22-28','PNC-27','Retatrutide + Cagrilintide','Retatrutide 20mg + Trizepatide 40mg (10ml)','Selank+Semax','SLU-PP-332','Tesamorelin + Ipamorelin',
+  'ACE-031','Alprostadil','Botulinum toxin','EPO','Follistatin','GDF-8','Gonadorelin','HCG','HGH 191AA','HGH Fragment 176-191','HMG','IGF-1 LR3','IGF-DES','Insulin-1vial','Testosterone Cypionate','Testosterone Enanthate'
+]);
 const REFERENCE_SCHEDULES={
   '5-Amino-1MQ':'Common community reference\nAmount: 50–100 mg daily\nRoute: Oral\nNo reconstitution or syringe calculation applies',
   'Cagrilintide + Semaglutide':'Reference only\nThe listed total strength does not consistently identify the amount of each component\nConfirm both component amounts before applying either titration schedule',
@@ -32,6 +35,7 @@ const DOSE_OVERRIDES={
   'Glutathione':[doseRecord(100),doseRecord(200),doseRecord(400),doseRecord(600)],
   'MOTS-C':[doseRecord(2.5),doseRecord(3),doseRecord(4),doseRecord(5)],
   'NAD+':[doseRecord(50),doseRecord(75),doseRecord(100)],
+  'Tesamorelin':[doseRecord(.5),doseRecord(1),doseRecord(2)],
   'VIP':[doseRecord(25,'mcg'),doseRecord(50,'mcg'),doseRecord(100,'mcg')]
 };
 function doseRecord(value,unit='mg',note){return {value,unit,mg:unit==='mcg'?value/1000:value,note}}
@@ -67,6 +71,34 @@ function durationText(p,vialAmount,dose){
 }
 
 const PROTOCOL_OVERRIDES={
+  'Cagrilintide + Semaglutide':{
+    overview:'A fixed blend of an amylin analog and a GLP-1 receptor agonist. The total vial strength does not reliably identify each component amount, so dose and draw calculations are withheld until the exact ratio is confirmed.',
+    schedule:'Reference only\nConfirm the amount of cagrilintide and semaglutide separately\nNo generalized dosage or reconstitution calculation is provided for an unknown blend ratio'
+  },
+  'DSIP':{
+    overview:'A naturally occurring neuropeptide investigated for sleep and stress signaling. Human studies are limited and inconsistent, so practical protocols remain community-based rather than clinically established.',
+    schedule:'Common community reference\nDose: 100–300 mcg\nFrequency: Once daily\nTiming: 30–60 minutes before bed\nCycle: Commonly 5–10 nights before reassessment\nEvidence: Limited human research + community use'
+  },
+  'GHRP-2 Acetate':{
+    overview:'A synthetic growth-hormone secretagogue that activates the ghrelin receptor and stimulates growth-hormone release. Human research exists, but generalized wellness dosing is not FDA approved.',
+    schedule:'Common community reference\nDose: 100–300 mcg per administration\nFrequency: One to three times daily\nTiming: Commonly fasted\nCycle: Commonly 8–12 weeks\nEvidence: Human pharmacology + community use'
+  },
+  'IGF-1 LR3':{
+    overview:'A long-acting synthetic IGF-1 analog with substantial hypoglycemia and growth-signaling concerns. Product concentration, indication, glucose monitoring, and clinical oversight materially affect dosing.',
+    schedule:'Reference only\nNo generalized dosage or reconstitution calculation is provided because of hypoglycemia risk and indication-specific monitoring requirements.'
+  },
+  'Retatrutide':{
+    overview:'An investigational once-weekly agonist of GLP-1, GIP, and glucagon receptors studied for obesity and metabolic disease. It is not FDA approved, and no single community titration schedule should be represented as an approved regimen.',
+    schedule:'Investigational community titration reference\nWeeks 1–4: 2 mg once weekly\nWeeks 5–8: 4 mg once weekly\nWeeks 9–12: 8 mg once weekly\nWeek 13 onward: 12 mg once weekly\nImportant: Phase 2 research tested several target-dose groups with different starting doses; this stepwise schedule is a community model, not one validated trial regimen.'
+  },
+  'Semaglutide':{
+    overview:'A GLP-1 receptor agonist approved in specific formulations for type 2 diabetes and chronic weight management. Injection and oral formulations use different schedules and are not interchangeable.',
+    schedule:'FDA-labeled weekly injection titration for weight management\nWeeks 1–4: 0.25 mg once weekly\nWeeks 5–8: 0.5 mg once weekly\nWeeks 9–12: 1 mg once weekly\nWeeks 13–16: 1.7 mg once weekly\nWeek 17 onward: 1.7 or 2.4 mg once weekly, based on indication and tolerability\nUse the labeling for the exact formulation and indication.'
+  },
+  'SS-31':{
+    overview:'Also called elamipretide, SS-31 is a mitochondria-targeting peptide studied for effects on mitochondrial membranes and cellular energy function. Human trials exist for specific diseases, while community wellness protocols remain unapproved and less certain.',
+    schedule:'Common community reference\nDose: 1–2 mg\nFrequency: Once daily\nTiming: No established fasting requirement\nCycle: Commonly 4–8 weeks\nEvidence: Human disease trials + community use outside approved indications'
+  },
   'BPC-157 + TB500':{
     overview:'A 1:1 blend of BPC-157 and TB-500 commonly discussed for soft-tissue and recovery research. Evidence is mainly animal data plus community reports; controlled human dosing data are limited.',
     schedule:'Common community range\nDose: 250–500 mcg of each peptide\nFrequency: Once daily\nTiming: Any time; fasting is not commonly required\nRoute: Subcutaneous\nCycle: Commonly 4–8 weeks\nEvidence: Animal research + anecdotal/community use'
@@ -74,6 +106,10 @@ const PROTOCOL_OVERRIDES={
   'Tesamorelin':{
     overview:'A GHRH analog that stimulates natural growth-hormone release. Community body-composition protocols commonly use less than the 2 mg daily disease-specific prescription regimen.',
     schedule:'Common community range\nDose: 0.5–1 mg\nFrequency: Once daily, often 5 days on / 2 days off\nTiming: Commonly fasted before bed or fasted in the morning\nRoute: Subcutaneous\nCycle: Commonly 8–12 weeks; longer cycles are also reported\nStudied/approved context: 2 mg daily is the HIV-lipodystrophy regimen, not the default community starting amount'
+  },
+  'Tirzepatide':{
+    overview:'A dual GIP and GLP-1 receptor agonist approved in specific formulations for type 2 diabetes and chronic weight management. It uses once-weekly dosing and gradual escalation to reduce gastrointestinal adverse effects.',
+    schedule:'FDA-labeled weekly injection titration\nWeeks 1–4: 2.5 mg once weekly\nWeeks 5–8: 5 mg once weekly\nFurther increases: 2.5 mg increments only after at least 4 weeks at the current dose\nMaintenance doses depend on indication and response; maximum labeled dose is 15 mg once weekly\nUse the labeling for the exact product and indication.'
   },
   'Tesamorelin + Ipamorelin':{
     overview:'A GHRH/GHRP blend used in community body-composition and recovery protocols. Human research on the combined formulation is limited.',
@@ -133,8 +169,10 @@ function conciseOverview(p){
   if(PROTOCOL_OVERRIDES[p.name])return PROTOCOL_OVERRIDES[p.name].overview;
   const clean=String(p.overview||'').replace(/\s+/g,' ').replace(/\bI (?:have|used|started|noticed|experienced)\b[\s\S]*$/i,'').trim();
   const sentences=clean.match(/[^.!?]+[.!?]+/g)||[clean];
-  let summary=sentences.slice(0,2).join(' ').trim();
+  const neutral=sentences.filter(sentence=>!/\b(i|me|my|mine|we|our|ours|you|your|yours)\b/i.test(sentence));
+  let summary=(neutral.length?neutral:sentences).slice(0,2).join(' ').trim();
   if(summary.length>520)summary=summary.slice(0,summary.lastIndexOf(' ',500))+'…';
+  if(p.calculable===false)return summary+' This entry is reference-only; no generalized dosage or reconstitution calculation is provided.';
   const evidence=/no human|zero published human|animal studies|preclinical/i.test(clean)
     ?' Evidence is primarily preclinical and/or anecdotal.'
     :/FDA approved|clinical trial|human subjects|human clinical/i.test(clean)
@@ -144,12 +182,14 @@ function conciseOverview(p){
 }
 
 function conciseSchedule(p){
+  if(p.calculable===false)return REFERENCE_SCHEDULES[p.name]||'Reference only\nNo generalized dosage or reconstitution calculation is provided because dosing is formulation-specific, indication-specific, or requires clinical monitoring.';
   if(REFERENCE_SCHEDULES[p.name])return REFERENCE_SCHEDULES[p.name];
   if(PROTOCOL_OVERRIDES[p.name])return PROTOCOL_OVERRIDES[p.name].schedule;
-  const lines=String(p.schedule||'').replace(/\.\.\.$/gm,'').split(/\n/).map(line=>line.trim().replace(/\s+/g,' ')).filter(Boolean);
+  const lines=String(p.schedule||'').replace(/\.\.\.$/gm,'').split(/\n/).map(line=>line.trim().replace(/\s+/g,' ')).filter(line=>line&&!/\b(i|me|my|mine|we|our|ours|you|your|yours)\b/i.test(line));
   const kept=[];
   for(const line of lines){
     if(/^(?:weeks?|days?)\s*\d+(?:\s*(?:to|through|–|-)\s*\d+)?\s*:/i.test(line)
+      || /^(?:week|day)\s*\d+\s*(?:onward|and beyond|\+)?[^:]*:/i.test(line)
       || /^(?:dose|frequency|timing|route|administration|duration|cycle(?: length)?|break|total daily|initial|loading|maintenance)\s*:/i.test(line))kept.push(line);
     if(kept.length===12)break;
   }
