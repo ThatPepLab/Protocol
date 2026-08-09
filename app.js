@@ -8,6 +8,22 @@ function fmt(n,digits=2){return Number(n).toLocaleString(undefined,{maximumFract
 function strengthLabel(mg){return `${fmt(mg)}mg vial`}
 function doseLabel(d){return `${fmt(d.value,3)}${d.unit}`}
 function current(){return products.find(p=>p.name===productSelect.value)||products[0]}
+function isNasal(p){return /^(semax|selank)$/i.test(p.name)}
+
+function nasalSchedule(p){
+  return String(p.schedule||'').replace(/\nSUBCUTANEOUS(?: INJECTION)? PROTOCOL[\s\S]*?(?=\n(?:NASAL SPRAY PREPARATION|CYCLE GUIDANCE))/i,'\n').trim();
+}
+
+function nasalDoses(p){
+  let text=nasalSchedule(p),end=text.search(/\n(?:Total daily|SUBCUTANEOUS|CYCLE GUIDANCE)/i);
+  if(end>0)text=text.slice(0,end);
+  const values=[];
+  for(const m of text.matchAll(/(\d+(?:\.\d+)?)\s*(?:to|–|-)\s*(\d+(?:\.\d+)?)\s*(mcg|μg|ug|mg)\b/gi)){
+    const unit=/mcg|μg|ug/i.test(m[3])?'mcg':'mg';
+    for(const raw of [m[1],m[2]]){const value=Number(raw),mg=unit==='mcg'?value/1000:value;if(!values.some(d=>d.mg===mg))values.push({value,unit,mg})}
+  }
+  return values.length?values.sort((a,b)=>a.mg-b.mg):p.doses;
+}
 
 function scheduledDoses(p){
   const found=[];
@@ -32,7 +48,7 @@ function populateStrengths(){
   const old=Number(strengthSelect.value);
   strengthSelect.innerHTML=p.strengths.map(mg=>`<option value="${mg}">${strengthLabel(mg)}</option>`).join('');
   if(p.strengths.includes(old))strengthSelect.value=old;
-  p.displayDoses=scheduledDoses(p);
+  p.displayDoses=isNasal(p)?nasalDoses(p):scheduledDoses(p);
   doseSelect.innerHTML=p.displayDoses.map((d,i)=>`<option value="${i}">${d.weekLabel?`${esc(d.weekLabel)} — `:''}${doseLabel(d)}${i===0?' — starting dose':''}</option>`).join('');
   render();
 }
@@ -40,6 +56,7 @@ function render(){
   const p=current();if(!p)return;
   const vialMg=Number(strengthSelect.value||p.strengths[0]);
   const doses=p.displayDoses||scheduledDoses(p),dose=doses[Number(doseSelect.value)||0]||doses[0];
+  if(isNasal(p)){renderNasal(p,vialMg,dose);return}
   const rows=WATER_OPTIONS.map(ml=>({ml,units:dose.mg/vialMg*ml*100,concentration:vialMg/ml}));
   const eligible=rows.filter(r=>r.units>0&&r.units<50.000001).sort((a,b)=>a.units-b.units||a.ml-b.ml);
   const recommended=eligible[0]||null;
@@ -48,6 +65,9 @@ function render(){
   $('vialPill').textContent=strengthLabel(vialMg);
   $('overview').textContent=p.overview;
   $('schedule').textContent=p.schedule;
+  $('reconHeading').textContent='Reconstitution comparison';
+  $('reconSubtext').textContent='U-100 syringe calculation: 100 units = 1 mL. The recommendation follows the requested rule: the lowest draw that is under 50 units.';
+  $('volumeHeading').textContent='BAC volume';$('drawHeading').textContent='Unit draw';$('reconNotesHeading').textContent='Reconstitution notes';$('unitsLabel').textContent='UNITS ON A U-100 SYRINGE';
   $('reconNotes').textContent=p.reconstitution;
   $('stability').textContent=p.stability;
   $('disclaimer').textContent=(p.disclaimer||'For educational planning only. Not medical advice.')+' Verify dosing, route, compatibility, and preparation with a qualified clinician or pharmacist.';
@@ -63,6 +83,22 @@ function render(){
     $('recommendedUnits').textContent='—';
     $('recommendation').hidden=false;
   }
+}
+
+function renderNasal(p,vialMg,dose){
+  const salineMl=5,spraysPerMl=10,totalSprays=salineMl*spraysPerMl,mcgPerSpray=vialMg*1000/totalSprays,sprays=dose.mg*1000/mcgPerSpray;
+  $('productName').textContent=p.name;$('category').textContent=p.category;$('vialPill').textContent=strengthLabel(vialMg);$('overview').textContent=p.overview;$('schedule').textContent=nasalSchedule(p);
+  $('reconHeading').textContent='Nasal spray preparation';
+  $('reconSubtext').textContent='Calculated using a 5 mL sprayer delivering approximately 0.1 mL per spray (about 50 sprays total). Actual pump output can vary; verify your sprayer.';
+  $('volumeHeading').textContent='Saline volume';$('drawHeading').textContent='Sprays per dose';
+  $('reconRows').innerHTML=`<tr class="recommended"><td>5 mL sterile saline · RECOMMENDED</td><td>${fmt(mcgPerSpray,2)} mcg/spray</td><td>${doseLabel(dose)}</td><td>${fmt(sprays,2)} spray${Math.abs(sprays-1)<.001?'':'s'}</td></tr>`;
+  $('reconNotesHeading').textContent='Nasal preparation notes';
+  $('reconNotes').textContent='Reconstitute the selected vial with 5 mL of sterile saline and transfer it to a clean 5 mL nasal sprayer. Do not use bacteriostatic water for this nasal preparation.';
+  $('stability').textContent='Keep the prepared nasal spray refrigerated and protected from light. Label it with the preparation date. Follow the saline and sprayer manufacturer’s storage guidance.';
+  $('recommendedMl').textContent='5 mL sterile saline';$('recommendedDose').textContent=`${doseLabel(dose)} from a ${fmt(vialMg)}mg vial · ${fmt(mcgPerSpray,2)} mcg per spray`;$('recommendedUnits').textContent=fmt(sprays,2);$('unitsLabel').textContent='SPRAYS PER DOSE';
+  const fractional=Math.abs(sprays-Math.round(sprays))>.05?' This produces a fractional spray count that cannot be measured accurately with a fixed-dose pump.':'';
+  $('disclaimer').textContent=(p.disclaimer||'For educational planning only. Not medical advice.')+' Verify the sprayer output and preparation with a qualified clinician or pharmacist.'+fractional;
+  $('recommendation').hidden=false;
 }
 
 function extractOffers(html){
