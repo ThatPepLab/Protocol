@@ -24,7 +24,9 @@ function isNasal(p){return /^(?:semax|selank|vip)$/i.test(p.name)}
 
 const DOSE_OVERRIDES={
   'AOD-9604':[doseRecord(250,'mcg'),doseRecord(300,'mcg'),doseRecord(500,'mcg')],
+  'BPC-157 + TB500':[doseRecord(.5,'mg','250 mcg each peptide'),doseRecord(1,'mg','500 mcg each peptide')],
   'Cagrilintide':[doseRecord(.25),doseRecord(.5),doseRecord(1),doseRecord(1.7),doseRecord(2.4)],
+  'CJC-1295 No DAC + Ipamorelin':[doseRecord(.2,'mg','100 mcg each peptide'),doseRecord(.4,'mg','200 mcg each peptide')],
   'FOXO4-DRI':[doseRecord(2),doseRecord(3),doseRecord(5),doseRecord(.3)],
   'GHK-Cu':[doseRecord(.5),doseRecord(1),doseRecord(2)],
   'Glutathione':[doseRecord(100),doseRecord(200),doseRecord(400),doseRecord(600)],
@@ -32,7 +34,37 @@ const DOSE_OVERRIDES={
   'NAD+':[doseRecord(50),doseRecord(75),doseRecord(100)],
   'VIP':[doseRecord(25,'mcg'),doseRecord(50,'mcg'),doseRecord(100,'mcg')]
 };
-function doseRecord(value,unit='mg'){return {value,unit,mg:unit==='mcg'?value/1000:value}}
+function doseRecord(value,unit='mg',note){return {value,unit,mg:unit==='mcg'?value/1000:value,note}}
+
+function frequencyRange(p){
+  const text=conciseSchedule(p).toLowerCase();
+  if(/as needed|prn|no general|reference only/.test(text))return null;
+  let m=text.match(/frequency:\s*(\d+(?:\.\d+)?)\s*(?:to|–|-)\s*(\d+(?:\.\d+)?)\s*times daily/);
+  if(m)return {min:+m[1],max:+m[2],basis:'day'};
+  if(/frequency:\s*(?:twice|2 times) daily/.test(text))return {min:2,max:2,basis:'day'};
+  if(/frequency:\s*(?:three|3 times) daily/.test(text))return {min:3,max:3,basis:'day'};
+  if(/frequency:[^\n]*(?:once or twice daily|once\/twice daily)/.test(text))return {min:1,max:2,basis:'day'};
+  if(/frequency:[^\n]*daily or 5 days (?:weekly|per week)/.test(text))return {min:5,max:7,basis:'week'};
+  if(/frequency:[^\n]*(?:once daily|daily)|dose:[^\n]*daily|amount:[^\n]*daily/.test(text))return {min:1,max:1,basis:'day'};
+  m=text.match(/frequency:\s*(\d+(?:\.\d+)?)\s*(?:to|–|-)\s*(\d+(?:\.\d+)?)\s*times (?:per )?week/);
+  if(m)return {min:+m[1],max:+m[2],basis:'week'};
+  if(/frequency:[^\n]*(?:three times weekly|3 times (?:per )?week|split across three)/.test(text))return {min:3,max:3,basis:'week'};
+  if(/frequency:[^\n]*(?:twice weekly|2 times (?:per )?week)/.test(text))return {min:2,max:2,basis:'week'};
+  if(/frequency:[^\n]*(?:once weekly|weekly)|weekly titration/.test(text))return {min:1,max:1,basis:'week'};
+  if(/every other day/.test(text))return {min:.5,max:.5,basis:'day'};
+  if(/5 days weekly|5 days per week|five days weekly/.test(text))return {min:5,max:5,basis:'week'};
+  return null;
+}
+
+function durationText(p,vialAmount,dose){
+  const frequency=frequencyRange(p),uses=vialAmount/dose.mg;
+  if(!frequency||!Number.isFinite(uses)||uses<=0)return 'Vial duration: no fixed schedule';
+  const toDays=f=>frequency.basis==='week'?uses/f*7:uses/f;
+  const shortest=toDays(frequency.max),longest=toDays(frequency.min);
+  const days=n=>fmt(n,n<10?1:0),useLabel=`${fmt(uses,1)} dose${Math.abs(uses-1)<.001?'':'s'}`;
+  const duration=Math.abs(shortest-longest)<.01?days(shortest):`${days(shortest)}–${days(longest)}`;
+  return `Vial lasts about ${duration} days at this dose · ${useLabel}${longest>28?' · review stability':''}`;
+}
 
 const PROTOCOL_OVERRIDES={
   'BPC-157 + TB500':{
@@ -192,6 +224,7 @@ function render(){
   $('reconNotes').textContent=p.reconstitution;
   $('stability').textContent=p.stability;
   $('disclaimer').textContent=(p.disclaimer||'For educational planning only. Not medical advice.')+' Verify dosing, route, compatibility, and preparation with a qualified clinician or pharmacist.';
+  $('vialDuration').textContent=durationText(p,vialMg,dose);
   $('reconRows').innerHTML=rows.map(r=>`<tr class="${recommended&&r.ml===recommended.ml?'recommended':''}"><td>${r.ml} mL${recommended&&r.ml===recommended.ml?' · RECOMMENDED':''}</td><td>${fmt(r.concentration,3)} mg/mL</td><td>${doseLabel(dose)}</td><td>${fmt(r.units,2)} units</td></tr>`).join('');
   if(recommended){
     $('recommendedMl').textContent=`${recommended.ml} mL BAC water`;
@@ -214,6 +247,7 @@ function renderReferenceOnly(p,vialAmount){
   $('reconNotesHeading').textContent='Handling notes';$('reconNotes').textContent=p.reconstitution||'Follow the product-specific manufacturer or pharmacy instructions.';
   $('stability').textContent=p.stability||'Follow the labeled storage instructions for the exact formulation.';
   $('recommendation').hidden=true;$('disclaimer').textContent=(p.disclaimer||'Research ONLY. Not medical advice.')+' No general dosing or reconstitution calculation is provided.';
+  $('vialDuration').textContent='';
 }
 
 function renderNasal(p,vialMg,dose){
@@ -227,6 +261,7 @@ function renderNasal(p,vialMg,dose){
   $('reconNotes').textContent='Reconstitute the selected vial with 5 mL of sterile saline and transfer it to a clean 5 mL nasal sprayer. Do not use bacteriostatic water for this nasal preparation.';
   $('stability').textContent='Keep the prepared nasal spray refrigerated and protected from light. Label it with the preparation date. Follow the saline and sprayer manufacturer’s storage guidance.';
   $('recommendedMl').textContent='5 mL sterile saline';$('recommendedDose').textContent=`${doseLabel(dose)} from a ${fmt(vialMg)}mg vial · ${fmt(mcgPerSpray,2)} mcg per spray`;$('recommendedUnits').textContent=fmt(sprays,2);$('unitsLabel').textContent='SPRAYS PER DOSE';
+  $('vialDuration').textContent=durationText(p,vialMg,dose);
   const fractional=Math.abs(sprays-Math.round(sprays))>.05?' This produces a fractional spray count that cannot be measured accurately with a fixed-dose pump.':'';
   $('disclaimer').textContent=(p.disclaimer||'For educational planning only. Not medical advice.')+' Verify the sprayer output and preparation with a qualified clinician or pharmacist.'+fractional;
   $('recommendation').hidden=false;

@@ -3,3 +3,4 @@
 @media(max-width:760px){.select-grid,.handling-grid{grid-template-columns:1fr}.card{padding:18px}.section-head{align-items:flex-start}.schedule{max-height:none}}
 @media print{body{background:#fff}header{padding:20px 28px}.research-banner{padding:9px;border:3px solid var(--navy)}.controls{display:none}.card{box-shadow:none;border:0;padding:10px;margin:0}.schedule{max-height:none;overflow:visible}.recommendation{break-inside:avoid}main{margin:0 auto;padding:0 20px}.handling-grid{break-inside:avoid}}
 .source-basis{margin:12px 0 0;padding:10px 12px;border:1px solid #f4bf9f;border-radius:9px;background:var(--cream);color:var(--muted);font-size:12px}
+.vial-duration{margin-top:16px;font-size:clamp(17px,3vw,23px);font-weight:900;color:#fff}
