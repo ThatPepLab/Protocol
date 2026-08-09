@@ -9,6 +9,18 @@ function strengthLabel(mg){return `${fmt(mg)}mg vial`}
 function doseLabel(d){return `${fmt(d.value,3)}${d.unit}`}
 function current(){return products.find(p=>p.name===productSelect.value)||products[0]}
 
+function scheduledDoses(p){
+  const found=[];
+  for(const rawLine of String(p.schedule||'').split(/\n/)){
+    const line=rawLine.trim();
+    const match=line.match(/^((?:(?:weeks?|days?)\s*\d+(?:\s*(?:to|through|–|-)\s*\d+)?|(?:week|day)\s*\d+\s*(?:onward|and beyond|\+)?)[^:]*):\s*(?:dose\s*)?(\d+(?:\.\d+)?)\s*(mcg|μg|ug|mg)\b/i);
+    if(!match)continue;
+    const unit=/mcg|μg|ug/i.test(match[3])?'mcg':'mg',value=Number(match[2]),mg=unit==='mcg'?value/1000:value;
+    if(!found.some(d=>d.mg===mg))found.push({value,unit,mg,weekLabel:match[1].replace(/\s+/g,' ')});
+  }
+  return found.length?found:p.doses;
+}
+
 function populateProducts(keep){
   products.sort((a,b)=>a.name.localeCompare(b.name));
   productSelect.innerHTML=products.map(p=>`<option value="${esc(p.name)}">${esc(p.name)}</option>`).join('');
@@ -20,13 +32,14 @@ function populateStrengths(){
   const old=Number(strengthSelect.value);
   strengthSelect.innerHTML=p.strengths.map(mg=>`<option value="${mg}">${strengthLabel(mg)}</option>`).join('');
   if(p.strengths.includes(old))strengthSelect.value=old;
-  doseSelect.innerHTML=p.doses.map((d,i)=>`<option value="${i}">${doseLabel(d)}${i===0?' — usual starting dose':''}</option>`).join('');
+  p.displayDoses=scheduledDoses(p);
+  doseSelect.innerHTML=p.displayDoses.map((d,i)=>`<option value="${i}">${d.weekLabel?`${esc(d.weekLabel)} — `:''}${doseLabel(d)}${i===0?' — starting dose':''}</option>`).join('');
   render();
 }
 function render(){
   const p=current();if(!p)return;
   const vialMg=Number(strengthSelect.value||p.strengths[0]);
-  const dose=p.doses[Number(doseSelect.value)||0]||p.doses[0];
+  const doses=p.displayDoses||scheduledDoses(p),dose=doses[Number(doseSelect.value)||0]||doses[0];
   const rows=WATER_OPTIONS.map(ml=>({ml,units:dose.mg/vialMg*ml*100,concentration:vialMg/ml}));
   const eligible=rows.filter(r=>r.units>0&&r.units<50.000001).sort((a,b)=>a.units-b.units||a.ml-b.ml);
   const recommended=eligible[0]||null;
