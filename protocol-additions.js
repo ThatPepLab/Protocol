@@ -1,6 +1,6 @@
 (()=>{
 const base={reconstitution:'Use the product-specific diluent and preparation instructions. Do not assume every product uses bacteriostatic water.',stability:'Follow formulation-specific storage guidance; refrigerate reconstituted research vials unless the labeled instructions say otherwise.',disclaimer:'Research ONLY. Not medical advice.'};
-const dose=(value,unit='mg')=>({value,unit,mg:value});
+const dose=(value,unit='mg')=>({value,unit,mg:/^(?:mcg|μg|ug)$/i.test(unit)?value/1000:value});
 const calc=(name,category,overview,schedule,doses,strengths,strengthUnit='mg')=>({name,protocolName:name,category,overview,schedule,frequency:'See schedule',doses,strengths,strengthUnit,...base});
 const ref=(name,category,overview,schedule,strengths,strengthUnit='mg')=>({name,protocolName:name,category,overview,schedule,frequency:'No general protocol',doses:[{value:0,unit:'',mg:0,note:'No general protocol'}],strengths,strengthUnit,calculable:false,...base});
 
