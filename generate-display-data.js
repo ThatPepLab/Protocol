@@ -11,7 +11,8 @@ for(const file of ['protocol-data.js','protocol-additions.js','app.js']){
 
 const normalize=value=>String(value||'').toLowerCase().replace(/thymosin beta-?4/g,'tb500').replace(/wolverine/g,'').replace(/[^a-z0-9]+/g,'');
 const records={};
-for(const product of context.window.PROTOCOL_DATA){
+const products=vm.runInContext('products',context);
+for(const product of products){
   const doses=product.calculable===false?[]:context.isNasal(product)?context.nasalDoses(product):context.scheduledDoses(product);
   records[normalize(product.name)]={
     overview:context.conciseOverview(product),
