@@ -22,6 +22,11 @@ function esc(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;'
 function fmt(n,digits=2){return Number(n).toLocaleString(undefined,{maximumFractionDigits:digits})}
 function strengthLabel(mg,p=current()){return `${fmt(mg)}${p?.strengthUnit||'mg'} vial`}
 function doseLabel(d){return d?.note||`${fmt(d.value,3)}${d.unit}`}
+function isTitrationProtocol(p){
+  const text=String(p.schedule||'');
+  return /titration|dose escalation/i.test(text)||(/weeks?\s*1\b/i.test(text)&&/weeks?\s*(?:5|6|7|8|9|1\d)\b/i.test(text));
+}
+function doseGuidance(p,dose,index){return index>0&&isTitrationProtocol(p)?'STAY HERE IF EFFECTIVE — increase only if needed and tolerated':''}
 function current(){return products.find(p=>p.name===productSelect.value)||products[0]}
 function isNasal(p){return /^(?:semax|selank|vip)$/i.test(p.name)}
 
@@ -184,7 +189,7 @@ function conciseOverview(p){
 function conciseSchedule(p){
   if(p.calculable===false)return REFERENCE_SCHEDULES[p.name]||'Reference only\nNo generalized dosage or reconstitution calculation is provided because dosing is formulation-specific, indication-specific, or requires clinical monitoring.';
   if(REFERENCE_SCHEDULES[p.name])return REFERENCE_SCHEDULES[p.name];
-  if(PROTOCOL_OVERRIDES[p.name])return PROTOCOL_OVERRIDES[p.name].schedule;
+  if(PROTOCOL_OVERRIDES[p.name])return withEscalationGuidance(p,PROTOCOL_OVERRIDES[p.name].schedule);
   const lines=String(p.schedule||'').replace(/\.\.\.$/gm,'').split(/\n/).map(line=>line.trim().replace(/\s+/g,' ')).filter(line=>line&&!/\b(i|me|my|mine|we|our|ours|you|your|yours)\b/i.test(line));
   const kept=[];
   for(const line of lines){
@@ -197,7 +202,11 @@ function conciseSchedule(p){
     kept.push(`Commonly listed amount: ${p.doses.map(d=>doseLabel(d)).join('–')}`);
     if(p.frequency)kept.push(`Frequency: ${p.frequency}`);
   }
-  return ['Concise protocol reference',...new Set(kept),'Evidence: Published research where available; otherwise repeated animal and community practice'].join('\n');
+  return withEscalationGuidance(p,['Concise protocol reference',...new Set(kept),'Evidence: Published research where available; otherwise repeated animal and community practice'].join('\n'));
+}
+
+function withEscalationGuidance(p,text){
+  return isTitrationProtocol(p)?`${text}\nTitration guidance: After the starter dose, STAY HERE if the current dose remains effective and tolerated. Do not increase automatically just because the next step is available.`:text;
 }
 
 function nasalSchedule(p){
@@ -241,7 +250,7 @@ function populateStrengths(){
   strengthSelect.innerHTML=p.strengths.map(mg=>`<option value="${mg}">${strengthLabel(mg,p)}</option>`).join('');
   if(p.strengths.includes(old))strengthSelect.value=old;
   p.displayDoses=p.calculable===false?[{value:0,unit:'',mg:0,note:'No general calculation'}]:isNasal(p)?nasalDoses(p):scheduledDoses(p);
-  doseSelect.innerHTML=p.displayDoses.map((d,i)=>`<option value="${i}">${d.weekLabel?`${esc(d.weekLabel)} — `:''}${doseLabel(d)}${i===0?' — starting dose':''}</option>`).join('');
+  doseSelect.innerHTML=p.displayDoses.map((d,i)=>`<option value="${i}">${d.weekLabel?`${esc(d.weekLabel)} — `:''}${doseLabel(d)}${i===0?' — STARTER DOSE':doseGuidance(p,d,i)?` — ${esc(doseGuidance(p,d,i))}`:''}</option>`).join('');
   render();
 }
 function render(){
