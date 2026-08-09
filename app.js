@@ -26,6 +26,7 @@ const DOSE_OVERRIDES={
   'AOD-9604':[doseRecord(250,'mcg'),doseRecord(300,'mcg'),doseRecord(500,'mcg')],
   'Cagrilintide':[doseRecord(.25),doseRecord(.5),doseRecord(1),doseRecord(1.7),doseRecord(2.4)],
   'FOXO4-DRI':[doseRecord(2),doseRecord(3),doseRecord(5),doseRecord(.3)],
+  'GHK-Cu':[doseRecord(.5),doseRecord(1),doseRecord(2)],
   'Glutathione':[doseRecord(100),doseRecord(200),doseRecord(400),doseRecord(600)],
   'MOTS-C':[doseRecord(2.5),doseRecord(3),doseRecord(4),doseRecord(5)],
   'NAD+':[doseRecord(50),doseRecord(75),doseRecord(100)],
@@ -77,6 +78,10 @@ const PROTOCOL_OVERRIDES={
   'FOXO4-DRI':{
     overview:'An experimental peptide intended to disrupt FOXO4-p53 signaling in senescent-cell models. Evidence is preclinical and community dosing is highly uncertain.',
     schedule:'Common community cycle\nDose: 2–5 mg every other day\nCourse: 3 total administrations\nRepeat: Commonly one to three cycles yearly\nAlternative low-dose report: 0.3–0.5 mg daily for 7 days\nEvidence: Preclinical + anecdotal'
+  },
+  'GHK-Cu':{
+    overview:'A naturally occurring copper-binding peptide studied for tissue repair, collagen signaling, skin, and hair. Injectable use is community-led; topical formulations use different concentration math.',
+    schedule:'Common injectable community range\nDose: 0.5–2 mg per administration\nFrequency: Daily or 5 days weekly\nCycle: Commonly 4–8 weeks; some extend to 12 weeks\nBreak: Commonly 4–6 weeks between cycles\nTopical formulations are not included in this syringe calculator'
   },
   'Glutathione':{
     overview:'An endogenous antioxidant used in several injectable and oral formulations. Absorption, route, and product concentration materially change the protocol.',
