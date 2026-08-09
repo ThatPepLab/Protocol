@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="theme-color" content="#071a3a">
+  <title>That PeP Lab Protocol Guide</title>
+  <link rel="stylesheet" href="styles.css?v=20260809-1">
+</head>
+<body>
+  <header>
+    <div class="eyebrow">THAT PEP LAB</div>
+    <h1>Protocol & Reconstitution Guide</h1>
+    <p>Select a matched product and one of its current TPLPrice vial strengths.</p>
+  </header>
+
+  <main>
+    <section class="card controls" aria-labelledby="selectionHeading">
+      <div class="section-head">
+        <div><div class="eyebrow orange">BUILD A GUIDE</div><h2 id="selectionHeading">Product selection</h2></div>
+        <button id="printButton" type="button">Print guide</button>
+      </div>
+      <div class="select-grid">
+        <label>Product<select id="productSelect"></select></label>
+        <label>Vial strength<select id="strengthSelect"></select></label>
+        <label>Displayed dose<select id="doseSelect"></select></label>
+      </div>
+      <p id="syncStatus" class="status">Loading matched TPLPrice products…</p>
+    </section>
+
+    <section class="card protocol" aria-live="polite">
+      <div class="eyebrow orange">SELECTED PROTOCOL</div>
+      <h2 id="productName"></h2>
+      <div class="pills"><span id="category"></span><span id="vialPill"></span></div>
+      <p id="overview" class="overview"></p>
+
+      <div class="schedule-box">
+        <h3>Usual dosage schedule</h3>
+        <div id="schedule" class="schedule"></div>
+      </div>
+
+      <h3>Reconstitution comparison</h3>
+      <p class="subtext">U-100 syringe calculation: 100 units = 1 mL. The recommendation follows the requested rule: the lowest draw that is under 50 units.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>BAC volume</th><th>Concentration</th><th>Selected dose</th><th>Unit draw</th></tr></thead>
+          <tbody id="reconRows"></tbody>
+        </table>
+      </div>
+
+      <div class="handling-grid">
+        <div><h3>Reconstitution notes</h3><p id="reconNotes"></p></div>
+        <div><h3>Storage and handling</h3><p id="stability"></p></div>
+      </div>
+
+      <div id="recommendation" class="recommendation">
+        <div class="eyebrow">RECOMMENDED RECONSTITUTION</div>
+        <div id="recommendedMl" class="recommended-ml"></div>
+        <div id="recommendedDose" class="recommended-dose"></div>
+        <div id="recommendedUnits" class="units"></div>
+        <div class="units-label">UNITS ON A U-100 SYRINGE</div>
+      </div>
+
+      <p id="disclaimer" class="disclaimer"></p>
+    </section>
+  </main>
+
+  <script src="protocol-data.js?v=20260809-1"></script>
+  <script src="app.js?v=20260809-1"></script>
+</body>
+</html>
