@@ -1,6 +1,6 @@
 const WATER_OPTIONS=[1,1.5,2,2.5,3];
 const REFERENCE_ONLY_NAMES=new Set([
-  '5-Amino-1MQ','Adamax','Adamax-982','ADAMAX-984','Adipotide','Cagrilintide + Semaglutide','Dihexa','FOXO4-DRI','Humanin','Oxytocin Acetate','PE-22-28','PNC-27','Retatrutide + Cagrilintide','Retatrutide 20mg + Trizepatide 40mg (10ml)','Selank+Semax','SLU-PP-332','Tesamorelin + Ipamorelin',
+  '5-Amino-1MQ','Adamax','Adamax-982','ADAMAX-984','Adipotide','Cagrilintide + Semaglutide','Dihexa','FOXO4-DRI','Humanin','Oxytocin Acetate','PE-22-28','PNC-27','GLP-3RT + Cagrilintide','GLP-3RT 20mg + Trizepatide 40mg (10ml)','Selank+Semax','SLU-PP-332','Tesamorelin + Ipamorelin',
   'ACE-031','Alprostadil','Botulinum toxin','EPO','Follistatin','GDF-8','Gonadorelin','HCG','HGH 191AA','HGH Fragment 176-191','HMG','IGF-1 LR3','IGF-DES','Insulin-1vial','Testosterone Cypionate','Testosterone Enanthate'
 ]);
 const REFERENCE_SCHEDULES={
@@ -8,8 +8,8 @@ const REFERENCE_SCHEDULES={
   'Cagrilintide + Semaglutide':'Reference only\nThe listed total strength does not consistently identify the amount of each component\nConfirm both component amounts before applying either titration schedule',
   'Dihexa':'Common community reference\nAmount: 5–20 mg daily\nRoute: Oral is most commonly reported\nEvidence: Preclinical + anecdotal; no human dose-finding studies',
   'Oxytocin Acetate':'Reference only\nIntranasal, sublingual, and injectable products use different units and concentrations\nUse the exact formulation instructions',
-  'Retatrutide + Cagrilintide':'Reference only\nThe listed total strength does not establish the amount of each component\nDo not calculate a draw until both component strengths are confirmed',
-  'Retatrutide 20mg + Trizepatide 40mg (10ml)':'Reference only\nFixed blend: 20 mg retatrutide + 40 mg tirzepatide\nNo general schedule is provided for combining two overlapping incretin agonists',
+  'GLP-3RT + Cagrilintide':'Reference only\nThe listed total strength does not establish the amount of each component\nDo not calculate a draw until both component strengths are confirmed',
+  'GLP-3RT 20mg + Trizepatide 40mg (10ml)':'Reference only\nFixed blend: 20 mg GLP-3RT + 40 mg tirzepatide\nNo general schedule is provided for combining two overlapping incretin agonists',
   'Selank+Semax':'Reference only\nBoth components are intranasal, but the total vial strength does not consistently establish each component amount\nConfirm the ratio before calculating sprays',
   'SLU-PP-332':'Reference only\nNo human dosing protocol has been established\nPublished research used animal dosing and non-water vehicles that should not be converted into a human schedule',
   'Tesamorelin + Ipamorelin':'Reference only\nThe total vial strength does not consistently establish the amount of each component\nConfirm both component amounts before calculating a draw'
@@ -92,7 +92,7 @@ const PROTOCOL_OVERRIDES={
     overview:'A long-acting synthetic IGF-1 analog with substantial hypoglycemia and growth-signaling concerns. Product concentration, indication, glucose monitoring, and clinical oversight materially affect dosing.',
     schedule:'Reference only\nNo generalized dosage or reconstitution calculation is provided because of hypoglycemia risk and indication-specific monitoring requirements.'
   },
-  'Retatrutide':{
+  'GLP-3RT':{
     overview:'An investigational once-weekly agonist of GLP-1, GIP, and glucagon receptors studied for obesity and metabolic disease. It is not FDA approved, and no single community titration schedule should be represented as an approved regimen.',
     schedule:'Investigational community titration reference\nWeeks 1–4: 2 mg once weekly\nWeeks 5–8: 4 mg once weekly\nWeeks 9–12: 8 mg once weekly\nWeek 13 onward: 12 mg once weekly\nImportant: Phase 2 research tested several target-dose groups with different starting doses; this stepwise schedule is a community model, not one validated trial regimen.'
   },
